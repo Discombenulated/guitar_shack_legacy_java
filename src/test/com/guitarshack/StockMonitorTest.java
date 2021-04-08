@@ -5,8 +5,10 @@ import org.mockito.Mockito;
 
 public class StockMonitorTest extends TestCase {
 
-    public static final Alert MOCK_ALERT = Mockito.mock(Alert.class);
-    public static final StockMonitor MONITOR = new StockMonitor(MOCK_ALERT, new WebRequest());
+    private static final Alert MOCK_ALERT = Mockito.mock(Alert.class);
+    private static final Request REQUEST = Mockito.mock(Request.class);
+    private static final StockMonitor MONITOR = new StockMonitor(MOCK_ALERT, REQUEST);
+
     private static final int PRODUCT_ID = 811;
     private static final int HIGH_QUANTITY = 1000;
     private static final int LOW_QUANTITY = 1;
