@@ -1,15 +1,29 @@
-package com.guitarshack;public class ProductService{private final com.guitarshack.StockMonitor stockMonitor;	public ProductService(com.guitarshack.StockMonitor stockMonitor)	{		this.stockMonitor = stockMonitor;	}private com.guitarshack.Product getProduct(int productId) {
+package com.guitarshack;
 
-        java.lang.String baseURL = "https://6hr1390c1j.execute-api.us-east-2.amazonaws.com/default/product";
-        java.util.Map<java.lang.String,java.lang.Object> params = new java.util.HashMap<java.lang.String,java.lang.Object>() {{
-            stockMonitor.put("id", productId);
+import com.google.gson.Gson;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public class ProductService {
+    private Request request;
+
+    public ProductService(Request request) {
+        this.request = request;
+    }
+
+    Product getProduct(int productId) {
+
+        String baseURL = "https://6hr1390c1j.execute-api.us-east-2.amazonaws.com/default/product";
+        Map<String, Object> params = new HashMap<String, Object>() {{
+            put("id", productId);
         }};
-        java.lang.String paramString = "?";
+        String paramString = "?";
 
-        for (java.lang.String key : params.keySet()) {
+        for (String key : params.keySet()) {
             paramString += key + "=" + params.get(key).toString() + "&";
         }
-        java.lang.String result = stockMonitor.getRequest().request(baseURL, paramString);
-        com.guitarshack.Product product = new com.google.gson.Gson().fromJson(result, com.guitarshack.Product.class);
-        return product;
-    }}
+        String result = request.request(baseURL, paramString);
+        return new Gson().fromJson(result, Product.class);
+    }
+}
