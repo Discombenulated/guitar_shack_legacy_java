@@ -1,15 +1,12 @@
 package com.guitarshack;
 
 import junit.framework.TestCase;
-import org.junit.Assert;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 
 public class StockMonitorTest extends TestCase {
 
     @Override
     public void setUp() throws Exception {
-        super.setUp();
         Mockito.reset(MOCK_ALERT);
     }
 
