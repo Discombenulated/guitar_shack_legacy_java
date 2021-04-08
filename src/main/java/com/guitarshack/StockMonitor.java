@@ -2,11 +2,6 @@ package com.guitarshack;
 
 import com.google.gson.Gson;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -16,9 +11,11 @@ import java.util.Map;
 
 public class StockMonitor {
     private final Alert alert;
+    private final Request request;
 
-    public StockMonitor(Alert alert) {
+    public StockMonitor(Alert alert, Request request) {
         this.alert = alert;
+        this.request = request;
     }
 
     public void productSold(int productId, int amountSold) {
@@ -40,9 +37,10 @@ public class StockMonitor {
         calendar.setTime(Calendar.getInstance().getTime());
         Date endDate = calendar.getTime();
         calendar.add(Calendar.DATE, -30);
-
         Date startDate = calendar.getTime();
         DateFormat format = new SimpleDateFormat("M/d/yyyy");
+
+
         Map<String, Object> params1 = new HashMap<>(){{
             put("productId", product.getId());
             put("startDate", format.format(startDate));
@@ -51,27 +49,19 @@ public class StockMonitor {
         }};
         String paramString1 = "?";
 
+
         for (String key : params1.keySet()) {
             paramString1 += key + "=" + params1.get(key).toString() + "&";
         }
-        HttpRequest request1 = HttpRequest
-                .newBuilder(URI.create("https://gjtvhjg8e9.execute-api.us-east-2.amazonaws.com/default/sales" + paramString1))
-                .build();
-        String result11 = "";
-        HttpClient httpClient1 = HttpClient.newHttpClient();
-        HttpResponse<String> response1 = null;
-        try {
-            response1 = httpClient1.send(request1, HttpResponse.BodyHandlers.ofString());
-            result11 = response1.body();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+
+        String result11 = request.request("https://gjtvhjg8e9.execute-api.us-east-2.amazonaws.com/default/sales", paramString1);
         String result1 = result11;
 
         return new Gson().fromJson(result1, SalesTotal.class);
     }
 
     private Product getProduct(int productId) {
+
         String baseURL = "https://6hr1390c1j.execute-api.us-east-2.amazonaws.com/default/product";
         Map<String, Object> params = new HashMap<>() {{
             put("id", productId);
@@ -81,18 +71,7 @@ public class StockMonitor {
         for (String key : params.keySet()) {
             paramString += key + "=" + params.get(key).toString() + "&";
         }
-        HttpRequest request = HttpRequest
-                .newBuilder(URI.create(baseURL + paramString))
-                .build();
-        String result = "";
-        HttpClient httpClient = HttpClient.newHttpClient();
-        HttpResponse<String> response = null;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            result = response.body();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
+        String result = request.request(baseURL, paramString);
         Product product = new Gson().fromJson(result, Product.class);
         return product;
     }
