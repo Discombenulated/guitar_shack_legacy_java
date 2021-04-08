@@ -21,7 +21,57 @@ public class StockMonitor {
         this.alert = alert;
     }
 
-    public void productSold(int productId, int quantity) {
+    public void productSold(int productId, int amountSold) {
+
+        Product product = getProduct(productId);
+
+        SalesTotal totalSoldLastMonth = getSalesTotal(product);
+
+        if(stockIsLow(product, amountSold, totalSoldLastMonth))
+            alert.send(product);
+    }
+
+    private boolean stockIsLow(Product product, int quantity, SalesTotal total) {
+        return product.getStock() - quantity <= (int) ((double) (total.getTotal() / 30) * product.getLeadTime());
+    }
+
+    private SalesTotal getSalesTotal(Product product) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(Calendar.getInstance().getTime());
+        Date endDate = calendar.getTime();
+        calendar.add(Calendar.DATE, -30);
+
+        Date startDate = calendar.getTime();
+        DateFormat format = new SimpleDateFormat("M/d/yyyy");
+        Map<String, Object> params1 = new HashMap<>(){{
+            put("productId", product.getId());
+            put("startDate", format.format(startDate));
+            put("endDate", format.format(endDate));
+            put("action", "total");
+        }};
+        String paramString1 = "?";
+
+        for (String key : params1.keySet()) {
+            paramString1 += key + "=" + params1.get(key).toString() + "&";
+        }
+        HttpRequest request1 = HttpRequest
+                .newBuilder(URI.create("https://gjtvhjg8e9.execute-api.us-east-2.amazonaws.com/default/sales" + paramString1))
+                .build();
+        String result11 = "";
+        HttpClient httpClient1 = HttpClient.newHttpClient();
+        HttpResponse<String> response1 = null;
+        try {
+            response1 = httpClient1.send(request1, HttpResponse.BodyHandlers.ofString());
+            result11 = response1.body();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+        String result1 = result11;
+
+        return new Gson().fromJson(result1, SalesTotal.class);
+    }
+
+    private Product getProduct(int productId) {
         String baseURL = "https://6hr1390c1j.execute-api.us-east-2.amazonaws.com/default/product";
         Map<String, Object> params = new HashMap<>() {{
             put("id", productId);
@@ -44,38 +94,7 @@ public class StockMonitor {
             e.printStackTrace();
         }
         Product product = new Gson().fromJson(result, Product.class);
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(Calendar.getInstance().getTime());
-        Date endDate = calendar.getTime();
-        calendar.add(Calendar.DATE, -30);
-        Date startDate = calendar.getTime();
-        DateFormat format = new SimpleDateFormat("M/d/yyyy");
-        Map<String, Object> params1 = new HashMap<>(){{
-            put("productId", product.getId());
-            put("startDate", format.format(startDate));
-            put("endDate", format.format(endDate));
-            put("action", "total");
-        }};
-        String paramString1 = "?";
-
-        for (String key : params1.keySet()) {
-            paramString1 += key + "=" + params1.get(key).toString() + "&";
-        }
-        HttpRequest request1 = HttpRequest
-                .newBuilder(URI.create("https://gjtvhjg8e9.execute-api.us-east-2.amazonaws.com/default/sales" + paramString1))
-                .build();
-        String result1 = "";
-        HttpClient httpClient1 = HttpClient.newHttpClient();
-        HttpResponse<String> response1 = null;
-        try {
-            response1 = httpClient1.send(request1, HttpResponse.BodyHandlers.ofString());
-            result1 = response1.body();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-        SalesTotal total = new Gson().fromJson(result1, SalesTotal.class);
-        if(product.getStock() - quantity <= (int) ((double) (total.getTotal() / 30) * product.getLeadTime()))
-            alert.send(product);
+        return product;
     }
 
 }
